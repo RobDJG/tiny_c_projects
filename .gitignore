@@ -3,4 +3,4 @@ build/
 *.o
 
 # Compiled programs (one per project folder)
-01_daily_greetings/hello
+learning_c/dimensional_weight/dweight

@@ -7,18 +7,18 @@ You don't need to install anything except `gcc` and `make`.
 ```
 tiny_c_projects/
 ├── vendor/unity/          unity.c, unity.h, unity_internals.h
-└── 01_daily_greetings/
-    ├── greeting.h / .c    the logic (what we test)
-    ├── hello.c            main() only
+└── learning_c/dimensional_weight/
+    ├── dweight.h / dweight_calc.c   the logic (what we test)
+    ├── dweight.c                    main() only
     ├── Makefile
-    └── tests/test_greeting.c
+    └── tests/test_dweight_calc.c
 ```
 
 ## Quick start
 
 ```bash
-cd 01_daily_greetings
-make          # build the program  -> ./hello
+cd learning_c/dimensional_weight
+make          # build the program  -> ./dweight
 make test     # build and run the tests
 make clean    # delete build output
 ```
@@ -39,28 +39,27 @@ Split each project like this:
 
 The program is built from `app.c` + `thing.c`. The tests are built from `tests/test_thing.c` + `thing.c` + `unity.c`.
 
-Tip: functions that **return** a value or **write into a buffer** are easy to test. Functions that only `printf` are not, so have them build the string and let `main` print it (that's what `build_greeting` does).
+Tip: functions that **return** a value or **write into a buffer** are easy to test. Functions that only `printf` are not, so have them compute and return the value and let `main` print it (that's what `calc_volume` and `calc_dimensional_weight` do).
 
 ## Anatomy of a test file
 
 ```c
 #include "unity.h"
-#include "greeting.h"          /* the code under test */
+#include "dweight.h"           /* the code under test */
 
 void setUp(void) {}            /* runs before EVERY test (required, may be empty) */
 void tearDown(void) {}         /* runs after EVERY test  (required, may be empty) */
 
-void test_greets_by_name(void) /* tests: void, no args, name starts with test_ */
+void test_volume_multiplies_dimensions(void) /* tests: void, no args, name starts with test_ */
 {
-    char out[32];                                  /* Arrange */
-    build_greeting("Ada", out, sizeof out);        /* Act     */
-    TEST_ASSERT_EQUAL_STRING("Hello, Ada!", out);  /* Assert  */
+    int volume = calc_volume(2, 3, 4);         /* Act    */
+    TEST_ASSERT_EQUAL_INT(24, volume);         /* Assert */
 }
 
 int main(void)
 {
     UNITY_BEGIN();
-    RUN_TEST(test_greets_by_name);   /* every test must be listed here */
+    RUN_TEST(test_volume_multiplies_dimensions);   /* every test must be listed here */
     return UNITY_END();              /* returns number of failures -> exit code */
 }
 ```
@@ -102,19 +101,20 @@ make test
 Without make (this is all the Makefile does):
 
 ```bash
-gcc -Wall -Wextra -std=c11 -I. -I../vendor/unity \
-    -o build/test_greeting tests/test_greeting.c greeting.c ../vendor/unity/unity.c
-./build/test_greeting
+mkdir -p build
+gcc -Wall -Wextra -std=c11 -I. -I../../vendor/unity \
+    -o build/test_dweight_calc tests/test_dweight_calc.c dweight_calc.c ../../vendor/unity/unity.c
+./build/test_dweight_calc
 ```
 
 ### Reading the output
 
 ```
-tests/test_greeting.c:38:test_greets_by_name:PASS
-tests/test_greeting.c:19:test_empty_name_gives_plain_hello:FAIL: Expected 'Hello!' Was 'Hello, !'
+tests/test_dweight_calc.c:40:test_volume_multiplies_dimensions:PASS
+tests/test_dweight_calc.c:43:test_weight_rounds_up_for_tiny_volume:FAIL: Expected 1 Was 0
 ...
 -----------------------
-4 Tests 1 Failures 0 Ignored
+6 Tests 1 Failures 0 Ignored
 FAIL
 ```
 
@@ -125,10 +125,11 @@ The program exits with the number of failures, so `make` stops with `Error 1` wh
 
 1. Put the logic in `thing.c` / `thing.h` and keep `main()` in its own file.
 2. `mkdir tests` and create `tests/test_thing.c` (copy the skeleton above).
-3. Copy `01_daily_greetings/Makefile` and change:
+3. Copy `learning_c/dimensional_weight/Makefile` and change:
    - `SRC = thing.c` (list every `.c` file except the one with your `main`)
-   - `hello` → your program name, `hello.c` → your main file
-   - `test_greeting` → `test_thing`
+   - `PROG` / `MAIN` → your program name and main file (`dweight` / `dweight.c`)
+   - `TEST` → `test_thing`, and `dweight.h` → `thing.h`
+   - `UNITY` → the relative path to `vendor/unity` (`../../vendor/unity` for anything directly under `learning_c/`)
 4. Add your program's binary to `.gitignore`.
 5. `make test`
 
